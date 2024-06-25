@@ -1,7 +1,9 @@
 package store
 
 import (
+	"math/rand"
 	"sync"
+	"time"
 )
 
 type URLStore struct {
@@ -26,4 +28,14 @@ func (s *URLStore) SetURLMapping(shortURL, originalURL string) {
 	s.Lock()
 	defer s.Unlock()
 	s.urlMap[shortURL] = originalURL
+}
+
+func generateShortURL() string {
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 6)
+	for i := range b {
+		b[i] = letters[rng.Intn(len(letters))]
+	}
+	return string(b)
 }
