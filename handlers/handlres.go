@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"url-shortener/store"
 )
@@ -32,14 +33,16 @@ func (h *URLHandler) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	originalURL := req.URL
 
 	if shortURL, exists := h.Store.GetShortURL(originalURL); exists {
-		json.NewEncoder(w).Encode(ShortenResponse{ShortURL: shortURL})
+		response := ShortenResponse{ShortURL: fmt.Sprintf("http://localhost:8080/%s", shortURL)}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	shortURL := store.GenerateShortURL()
 	h.Store.SetURLMapping(shortURL, originalURL)
 
-	json.NewEncoder(w).Encode(ShortenResponse{ShortURL: shortURL})
+	response := ShortenResponse{ShortURL: fmt.Sprintf("http://localhost:8080/%s", shortURL)}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
