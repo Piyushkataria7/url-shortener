@@ -44,3 +44,8 @@ func (h *URLHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 	}
 	http.NotFound(w, r)
 }
+
+func (h *URLHandler) TopDomains(w http.ResponseWriter, r *http.Request) {
+	topDomains := h.Store.GetTopDomains()
+	json.NewEncoder(w).Encode(topDomains)
+}
