@@ -30,6 +30,12 @@ func (h *URLHandler) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	originalURL := req.URL
+
+	if shortURL, exists := h.Store.GetShortURL(originalURL); exists {
+		json.NewEncoder(w).Encode(ShortenResponse{ShortURL: shortURL})
+		return
+	}
+
 	shortURL := store.GenerateShortURL()
 	h.Store.SetURLMapping(shortURL, originalURL)
 

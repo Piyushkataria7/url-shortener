@@ -16,14 +16,16 @@ type domainCount struct {
 }
 type URLStore struct {
 	sync.RWMutex
-	urlMap    map[string]string
-	domainMap map[string]int
+	urlMap     map[string]string
+	domainMap  map[string]int
+	reverseMap map[string]string
 }
 
 func NewURLStore() *URLStore {
 	return &URLStore{
-		urlMap:    make(map[string]string),
-		domainMap: make(map[string]int),
+		urlMap:     make(map[string]string),
+		domainMap:  make(map[string]int),
+		reverseMap: make(map[string]string),
 	}
 }
 
@@ -34,12 +36,19 @@ func (s *URLStore) GetOriginalURL(shortURL string) (string, bool) {
 	return originalURL, exists
 }
 
-func (s *URLStore) SetURLMapping(shortURL, originalURL string) {
+func (s *URLStore) SetURLMapping(shortURL, originalURL string) string {
 	s.Lock()
 	defer s.Unlock()
+
+	if existingShortURL, exists := s.reverseMap[originalURL]; exists {
+		return existingShortURL
+	}
+
 	s.urlMap[shortURL] = originalURL
 	domain := ExtractDomain(originalURL)
 	s.domainMap[domain]++
+
+	return shortURL
 }
 
 func GenerateShortURL() string {
@@ -63,10 +72,12 @@ func ExtractDomain(rawURL string) string {
 func (s *URLStore) GetTopDomains() []string {
 	s.RLock()
 	defer s.RUnlock()
+
 	var domains []domainCount
 	for domain, count := range s.domainMap {
 		domains = append(domains, domainCount{Domain: domain, Count: count})
 	}
+
 	sort.Slice(domains, func(i, j int) bool {
 		return domains[i].Count > domains[j].Count
 	})
@@ -75,5 +86,17 @@ func (s *URLStore) GetTopDomains() []string {
 	for i := 0; i < len(domains) && i < 3; i++ {
 		topDomains = append(topDomains, domains[i].Domain+": "+strconv.Itoa(domains[i].Count))
 	}
+
 	return topDomains
+}
+
+func (s *URLStore) GetShortURL(originalURL string) (string, bool) {
+	s.RLock()
+	defer s.RUnlock()
+	for short, original := range s.urlMap {
+		if original == originalURL {
+			return short, true
+		}
+	}
+	return "", false
 }
