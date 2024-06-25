@@ -30,7 +30,7 @@ func (s *URLStore) SetURLMapping(shortURL, originalURL string) {
 	s.urlMap[shortURL] = originalURL
 }
 
-func generateShortURL() string {
+func GenerateShortURL() string {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, 6)
